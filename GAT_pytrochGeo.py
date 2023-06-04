@@ -56,9 +56,10 @@ class GAT(torch.nn.Module):
         return acc
 
 
-gat = GAT(dataset.num_features, 32, dataset.num_classes)
-print(gat)
-gat.fit(data, epochs=100)
+def run():
+    gat = GAT(dataset.num_features, 32, dataset.num_classes)
+    print(gat)
+    gat.fit(data, epochs=100)
 
-acc = gat.test(data)
-print(f'GAT test accuracy: {acc * 100:.2f}%')
+    acc = gat.test(data)
+    print(f'GAT test accuracy: {acc * 100:.2f}%')
