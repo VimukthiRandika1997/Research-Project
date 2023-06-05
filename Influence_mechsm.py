@@ -64,6 +64,7 @@ def softmax2D(x, axis):
 
 # Attention weights
 W_alpha = softmax2D(E, 1)
+print('Alpha_ones', W_alpha[connections[0], connections[1]])
 
 # Calculate new matrix of embeddings H
 H = A.T @ W_alpha @ X @ W.T
