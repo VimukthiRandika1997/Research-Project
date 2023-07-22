@@ -103,3 +103,12 @@ a = Attention(embedding_dim=64, num_heads=4, downsample_rate=0.5)
 print(a)
 q = torch.rand(10, 100, 64, dtype=torch.float)
 a.forward(q, q, q)
+
+class ResidualBlock(nn.Module):
+    """Adding a residual connection to a output of a NN"""
+    def __init__(self, nn):
+        super().__init__()
+        self.fn = nn
+
+    def forward(self, x, *args, **kwargs):
+        return self.fn(x, *args, **kwargs) + x
