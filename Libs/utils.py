@@ -25,6 +25,11 @@ class EarlyStopper:
 
 # Functions
 def create_early_stopper(patience, min_delta):
+    """Create a early stopper for the training task
+    Args:
+        patience: number of epochs to be waited
+        min_delta: minimum distance between two consecutive loss values
+    """
     return EarlyStopper(patience, min_delta)
 
 
