@@ -12,6 +12,7 @@ import torch_geometric.nn as pyg_nn
 
 import os
 import time
+import logging
 from tqdm import tqdm
 
 from Libs.utils import create_early_stopper, seed_everything
@@ -91,7 +92,7 @@ def accuracy(pred_y, y):
     return ((pred_y == y).sum() / len(y)).item()
 
 
-def train(model, loader, val_loader, epochs=100, edge_feature_compact=True):
+def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_saving_artifacts, enable_early_stopping):
     """Train and validate the model with given params
 
     :param val_loader:
@@ -101,6 +102,7 @@ def train(model, loader, val_loader, epochs=100, edge_feature_compact=True):
     :param epochs:
     :return: model
     """
+
     early_stopper = create_early_stopper(patience=3, min_delta=0.05)
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -150,9 +152,15 @@ def train(model, loader, val_loader, epochs=100, edge_feature_compact=True):
             print(
                 f'Epoch: {epoch:03d}, Train Acc: {acc * 100:.4f}, Val Acc: {val_acc * 100:.4f}, Train Loss: {total_loss:.2f}, Val Loss: {val_loss:.4f}')
 
+            logging.basicConfig(level=logging.DEBUG, filename=os.path.join(path_to_saving_artifacts, 'train_val.log'),
+                                filemode='w', format='%(message)s')
+            logging.debug(
+                f'Epoch: {epoch:03d}, Train Acc: {acc * 100:.4f}, Val Acc: {val_acc * 100:.4f}, Train Loss: {total_loss:.2f}, Val Loss: {val_loss:.4f}')
+
         # Early stopper
-        if early_stopper.early_stop(val_loss):
-            break
+        if enable_early_stopping:
+            if early_stopper.early_stop(val_loss):
+                break
 
     return model, \
         train_acc_list, \
@@ -239,8 +247,13 @@ def visualize_results(train_list, val_list, meta_data, path_to_saving_artifacts)
     fig.write_image(os.path.join(path_to_saving_artifacts,
                     f"images/{meta_data['image_data']}.png"))
 
+##################################
+############################################################################################
 
-def run_experiment(experiment_name, model, train_loader, val_loader, test_loader, epochs, edge_feature_compact=True):
+
+################### - Main Execution - #############################################################
+
+def run_experiment(experiment_name, model, train_loader, val_loader, test_loader, epochs, edge_feature_compact=True, enable_early_stopping=True):
     """Run an experiment on given settings"""
 
     path_to_saving_artifacts = _create_directories(experiment_name)
@@ -251,12 +264,19 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
         train_acc_list, \
         train_loss_list, \
         val_acc_list, \
-        val_loss_list = train(model, train_loader,
-                              val_loader, epochs, edge_feature_compact)
+        val_loss_list = train(model,
+                              train_loader,
+                              val_loader,
+                              epochs,
+                              edge_feature_compact,
+                              path_to_saving_artifacts,
+                              enable_early_stopping)
 
     # Testing accuracy for the trained model
     test_accuracy = test_model(
         trained_model, test_loader, edge_feature_compact)
+
+    # Save the accuracy for the trained model on the test dataset
     with open(os.path.join(path_to_saving_artifacts, 'accuracy_on_test_dataset.txt'), 'w') as f:
         f.write(f'Accuracy on test dataset: {test_accuracy}')
 
