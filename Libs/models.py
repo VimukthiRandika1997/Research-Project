@@ -215,3 +215,17 @@ class GINModel(torch.nn.Module):
         return F.log_softmax(h, dim=1)
 
 ###############
+
+
+################### - Functions - #############################################################
+def get_all_models():
+    """Get all available model blueprints"""
+
+    model_blueprints = [
+        EINModel,
+        GCNModel,
+        GATModel,
+        GINModel
+    ]
+
+    return model_blueprints

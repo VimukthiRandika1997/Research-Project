@@ -12,7 +12,7 @@ import plotly.express as px
 
 
 ################### - Paths - #############################################################
-path_to_save_dataset = '.Data/'
+path_to_save_dataset = './Data'
 
 ##################################
 ############################################################################################
@@ -49,10 +49,17 @@ def pick_the_dataset(args):
 
     _create_directories()
 
-    if args.dataset_name == 'MUTAG':
-        dataset = TUDataset(root='./data', name='MUTAG')
+    # Metadata related the dataset
+    metadata = {}
+
+    if args['dataset_name'] == 'MUTAG':
+        dataset = TUDataset(root='./Data', name='MUTAG')
     elif args.dataset_name == 'tox21':
         pass
+
+    else:
+        raise ValueError(
+            'Unknown dataset name, please specify a valid dataset')
 
     print(f'Dataset: {dataset}:')
 
@@ -62,6 +69,12 @@ def pick_the_dataset(args):
     print(f'Number of features: {dataset.num_features}')
     print(f'Number of classes: {dataset.num_classes}')
     print(f'Number of edge features: {dataset.num_edge_features}')
+
+    # Storing metadata
+    metadata['num_node_features'] = dataset.num_features
+    metadata['num_edge_features'] = dataset.num_edge_features
+    metadata['num_cls'] = dataset.num_classes
+    metadata['num_graphs'] = len(dataset)
 
     data = dataset[0]  # Get the first graph object.
 
@@ -79,11 +92,11 @@ def pick_the_dataset(args):
     print(f'Is undirected: {data.is_undirected()}')
     print('=============================================================\n')
 
-    if args.preprocess:
-        preprocessed_dataset = prepare_dataset()
-        return preprocessed_dataset
+    # if args['preprocess']:
+    #     preprocessed_dataset = prepare_dataset()
+    #     return preprocessed_dataset
 
-    if args.do_analysis:
-        analysize_dataset()
+    # if args['do_analysis']:
+    #     analysize_dataset()
 
-    return dataset
+    return dataset, metadata

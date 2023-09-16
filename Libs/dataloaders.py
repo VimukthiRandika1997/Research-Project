@@ -39,14 +39,14 @@ def create_dataloaders(args):
             train_loader, val_loader, test_loader
     """
 
-    dataset = pick_the_dataset(args)
+    dataset, metadata = pick_the_dataset(args)
     train_dataset, val_dataset, test_dataset = create_dataset_splits(dataset)
 
     train_loader = DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=True)
+        train_dataset, batch_size=args['batch_size'], shuffle=True)
     val_loader = DataLoader(
-        val_dataset, batch_size=args.batch_size, shuffle=True)
+        val_dataset, batch_size=args['batch_size'], shuffle=True)
     test_loader = DataLoader(
-        test_dataset, batch_size=args.batch_size, shuffle=False)
+        test_dataset, batch_size=args['batch_size'], shuffle=False)
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, test_loader, metadata
