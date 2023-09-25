@@ -3,6 +3,9 @@ from Libs.dataloaders import create_dataloaders
 from Libs.models import get_all_models
 from Libs.train import run_experiment
 
+import datetime
+
+current_time = datetime.datetime.now()
 ##################################
 ############################################################################################
 
@@ -54,7 +57,7 @@ args = {
 ################### - Main Execution - ############################################################
 
 
-def run():
+def run(args):
     train_loader, \
         val_loader, \
         test_loader, \
@@ -64,8 +67,7 @@ def run():
     model_list = []
 
     # Hyperparameter updating based on the dataset metadata
-    assert len(model_hyperparameter_list) == len(
-        model_blueprints), 'Length should be equal!!!'
+    assert len(model_hyperparameter_list) == len(model_blueprints), 'Length should be equal!!!'
 
     # Does not contain edge features, hence those are excluded
     excluded_models = set(['GCN', 'GIN'])
@@ -76,7 +78,7 @@ def run():
 
         # avoid models without edge features
         if not (key.split('_')[-2] in excluded_models):
-            print(key)
+            # print(key)
             model_hyperparameter_list[key]['edge_dim'] = metadata['num_edge_features']
 
         # Creating the model
@@ -94,28 +96,28 @@ def run():
         model_name = key.split('_')[-2]
         if not (model_name in excluded_models):
 
-            run_experiment(experiment_name=f'{model_name}_exp' + str(i),
+            run_experiment(experiment_name=f"exp_{str(current_time)}/{model_name}_{args['dataset_name']}_exp",
                            model=model,
                            train_loader=train_loader,
                            val_loader=val_loader,
                            test_loader=test_loader,
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
-                           #    enable_early_stopping=False
+                        #    enable_early_stopping=False
                            )
         else:
 
-            run_experiment(experiment_name=f'{model_name}_exp' + str(i),
+            run_experiment(experiment_name=f"exp_{str(current_time)}/{model_name}_{args['dataset_name']}_exp",
                            model=model,
                            train_loader=train_loader,
                            val_loader=val_loader,
                            test_loader=test_loader,
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
-                           edge_feature_compact=False
-                           #    enable_early_stopping=False
+                           edge_feature_compact=False,
+                        #    enable_early_stopping=False
                            )
 
 
 if __name__ == '__main__':
-    run()
+    run(args)

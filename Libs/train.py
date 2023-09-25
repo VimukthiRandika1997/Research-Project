@@ -97,7 +97,7 @@ def accuracy(pred_y, y):
     return ((pred_y == y).sum() / len(y)).item()
 
 
-def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_saving_artifacts, enable_early_stopping, logger):
+def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_saving_artifacts, enable_early_stopping, logger, device):
     """Train and validate the model with given params
 
     :param val_loader:
@@ -107,6 +107,7 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
     :param epochs:
     :return: model
     """
+    model.to(device)
 
     early_stopper = create_early_stopper(patience=3, min_delta=0.05)
     criterion = torch.nn.CrossEntropyLoss()
@@ -128,6 +129,7 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
 
         # Train on batches
         for data in loader:
+            data.to(device)
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():  # Mix-precision with autocast
                 if edge_feature_compact:
@@ -144,7 +146,7 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
 
         # Validation for each epoch
         val_loss, val_acc = validate_model(
-            model, val_loader, edge_feature_compact)
+            model, val_loader, device, edge_feature_compact)
 
         val_loss_list.append(val_loss.detach().cpu().numpy().item())
         val_acc_list.append(val_acc)
@@ -173,15 +175,17 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
 
 
 @torch.no_grad()
-def validate_model(model, loader, edge_feature_compact=True):
+def validate_model(model, loader, device, edge_feature_compact=True):
     """Evaluate the model on evaluation mode"""
 
+    model.to(device)
     criterion = torch.nn.CrossEntropyLoss()
     model.eval()
     loss = 0
     acc = 0
 
     for data in loader:
+        data.to(device)
         with torch.cuda.amp.autocast():  # Mix-precision
             if edge_feature_compact:
                 out = model(data.x, data.edge_index,
@@ -197,15 +201,17 @@ def validate_model(model, loader, edge_feature_compact=True):
 
 
 @torch.no_grad()
-def test_model(model, loader, edge_feature_compact=True):
+def test_model(model, loader, device, edge_feature_compact=True):
     """Evaluate the model on evaluation mode"""
 
+    model.to(device)
     criterion = torch.nn.CrossEntropyLoss()
     model.eval()
     loss = 0
     acc = 0
 
     for data in loader:
+        data.to(device)
         with torch.cuda.amp.autocast():  # Mix-precision
             if edge_feature_compact:
                 out = model(data.x, data.edge_index,
@@ -261,12 +267,15 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
 
     print('\n\n#################################### ******************************** #################################')
     print('Starting the experiment...')
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f'Device: {device}\n')
+
     path_to_saving_artifacts = _create_directories(experiment_name)
     seed_everything()  # apply seeding
     print('Model architecture:\n', model)
 
-    logger = get_logger(os.path.join(
-        path_to_saving_artifacts, 'log'))
+    logger = get_logger(os.path.join(path_to_saving_artifacts, 'log'))
 
     # Run the training process
     trained_model, \
@@ -280,11 +289,11 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
                               edge_feature_compact,
                               path_to_saving_artifacts,
                               enable_early_stopping,
-                              logger)
+                              logger,
+                              device)
 
     # Testing accuracy for the trained model
-    test_accuracy = test_model(
-        trained_model, test_loader, edge_feature_compact)
+    test_accuracy = test_model(trained_model, test_loader, device, edge_feature_compact)
 
     # Save the accuracy for the trained model on the test dataset
     logger.debug(f'Accuracy on test dataset: {test_accuracy}')
@@ -313,11 +322,9 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
     # Saving the trained model
     print('\nSaving the trained model...\n')
     # saving entire model
-    torch.save(trained_model, os.path.join(
-        path_to_saving_artifacts, 'models/entire_model.pt'))
+    torch.save(trained_model, os.path.join(path_to_saving_artifacts, 'models/entire_model.pt'))
     # saving the model for inference
-    torch.save(trained_model.state_dict(), os.path.join(
-        path_to_saving_artifacts, 'models/inference_model.pt'))
+    torch.save(trained_model.state_dict(), os.path.join(path_to_saving_artifacts, 'models/inference_model.pt'))
 
     print('#################################### ******************************** #################################')
     print('Experiment is completed!!!')

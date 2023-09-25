@@ -13,7 +13,7 @@ from .datasets import pick_the_dataset
 ################### - Helper Functions - #############################################################
 def create_dataset_splits(dataset):
     # Shuffle the dataset
-    dataset = dataset.shuffle()
+    # dataset = dataset.shuffle()
 
     train_dataset, test_dataset = train_test_split(
         dataset, test_size=0.2, random_state=42)
