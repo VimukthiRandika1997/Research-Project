@@ -4,6 +4,7 @@ from torch_geometric.loader import DataLoader
 from sklearn.model_selection import train_test_split
 
 from .datasets import pick_the_dataset
+from .utils import seed_dataloader
 
 
 ##################################
@@ -42,11 +43,13 @@ def create_dataloaders(args):
     dataset, metadata = pick_the_dataset(args)
     train_dataset, val_dataset, test_dataset = create_dataset_splits(dataset)
 
+    seed_worker, generator = seed_dataloader()
+
     train_loader = DataLoader(
-        train_dataset, batch_size=args['batch_size'], shuffle=True)
+        train_dataset, batch_size=args['batch_size'], shuffle=True, worker_init_fn=seed_worker, generator=generator)
     val_loader = DataLoader(
-        val_dataset, batch_size=args['batch_size'], shuffle=True)
+        val_dataset, batch_size=args['batch_size'], shuffle=True, worker_init_fn=seed_worker, generator=generator)
     test_loader = DataLoader(
-        test_dataset, batch_size=args['batch_size'], shuffle=False)
+        test_dataset, batch_size=args['batch_size'], shuffle=False, worker_init_fn=seed_worker, generator=generator)
 
     return train_loader, val_loader, test_loader, metadata

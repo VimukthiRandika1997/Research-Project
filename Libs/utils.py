@@ -47,3 +47,25 @@ def seed_everything(seed=42):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True # run algorithms in a deterministic way
     torch.backends.cudnn.benchmark = False # same cuda-backend for all the gpus
+
+
+def seed_dataloader(seed=42):
+    """Seed dataloaders for reproducibility
+    
+       Returns:
+        seed_worker(func), g(generator)
+    """
+
+    def seed_worker(worker_id):
+        """Fix workers randomness
+            so this can be used within the dataloaders
+        """
+        worker_seed = torch.initial_seed() % 2**32
+        np.random.seed(worker_seed)
+
+    # Generator
+    g = torch.Generator()
+    g.manual_seed(seed)
+
+    return seed_worker, g
+
