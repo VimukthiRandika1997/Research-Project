@@ -159,6 +159,8 @@ class EINv1(MessagePassing):
 class EINv2(MessagePassing):
     """
     A Edge featured attention based Graph Neural Network Layer(+MLP) for Graph Classification / Regression Tasks: V2
+
+    2-layer MLP Block is used to learn more features following the model arch: GIN
     """
 
     def __init__(
@@ -263,7 +265,7 @@ class EINv2(MessagePassing):
         if isinstance(return_attention_weights, bool):
             return out, alpha.mean(dim=1, keepdims=True)
         else:
-            return out  # (N, H_out)
+            return self.nn(out)  # (N, H_out)
 
     def message(self, x_j, x_i, index, size_i, edge_attr):
         # x_j has shape [#edges, NH, H_out]

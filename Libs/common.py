@@ -14,7 +14,7 @@ from typing import Type
 #################################################################################
 class MLPBlock(nn.Module):
     """
-    Normal MLP Block
+    Normal 2-layer MLP Block
 
     Args:
         embedding_dim: The number of embedding dimensions,
@@ -49,6 +49,44 @@ class MLPBlock(nn.Module):
         x = self.drop(x)
 
         return x
+
+
+class MLPBlockNorm(nn.Module):
+    """
+    Normalized 2-layer MLP Block
+
+    Args:
+        embedding_dim: The number of embedding dimensions,
+        mlp_dim: output embedding dimensions,
+        drop: dropout probability
+
+    Returns:
+        (mlp_dim, embedding_dim)
+
+    """
+
+    def __init__(
+            self,
+            embedding_dim: int,
+            mlp_dim: int,
+            drop: float = 0.0,
+            bias: bool = True
+    ) -> None:
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(embedding_dim, mlp_dim, bias=bias),
+            nn.Dropout(drop),
+            nn.BatchNorm1d(mlp_dim),
+            nn.GELU(),
+            nn.Linear(mlp_dim, embedding_dim, bias=bias),
+            nn.Dropout(drop),
+            nn.BatchNorm1d(embedding_dim),
+            nn.GELU(),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+
+        return self.layers(x)
 
 
 ########### - End - ###########

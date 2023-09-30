@@ -27,6 +27,13 @@ model_hyperparameter_list = {
 
     },
 
+    'hyperparameters_for_EINv2_model': {
+        'dim_h': 64,
+        'num_heads': 16,
+        'eps': 1
+
+    },     
+
     'hyperparameters_for_GCN_model': {
         'dim_h': 64
     },
@@ -40,7 +47,13 @@ model_hyperparameter_list = {
         'dim_h': 64,
         'train_eps': True,
         'eps': 1
-    }
+    },
+
+    'hyperparameters_for_GINE_model': {
+        'dim_h': 64,
+        'train_eps': True,
+        'eps': 1
+    },  
 
 }
 
@@ -103,7 +116,7 @@ def run(args):
                            test_loader=test_loader,
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
-                        #    enable_early_stopping=False
+                           enable_early_stopping=False
                            )
         else:
 
@@ -115,7 +128,7 @@ def run(args):
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
                            edge_feature_compact=False,
-                        #    enable_early_stopping=False
+                           enable_early_stopping=False
                            )
 
 
