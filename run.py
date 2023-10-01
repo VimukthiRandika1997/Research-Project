@@ -19,14 +19,14 @@ model_blueprints = get_all_models()
 model_hyperparameter_list = {
 
     'hyperparameters_for_EIN_model': {
-        'dim_h': 64,
+        'dim_h': 368,
         'num_heads': 16,
         'eps': 1
 
     },
 
     'hyperparameters_for_EINv2_model': {
-        'dim_h': 64,
+        'dim_h': 368,
         'num_heads': 16,
         'eps': 1
 
@@ -56,12 +56,12 @@ model_hyperparameter_list = {
 }
 
 # Datasets for experiments
-datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS']
+datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
 
 # Arguments for dataset creation
 args = {
     # 'dataset_name': 'MUTAG',
-    'dataset_name': 'MUTAG',
+    'dataset_name': 'BACE',
     'batch_size': 32
 }
 
@@ -118,7 +118,7 @@ def run(args):
                            test_loader=test_loader,
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
-                        #    enable_early_stopping=False
+                           enable_early_stopping=False
                            )
         else:
 
@@ -130,7 +130,7 @@ def run(args):
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
                            edge_feature_compact=False,
-                        #    enable_early_stopping=False
+                           enable_early_stopping=False
                            )
 
 

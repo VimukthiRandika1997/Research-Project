@@ -62,6 +62,8 @@ def pick_the_dataset(args):
         dataset = MoleculeNet(root='./Data', name='Tox21')
     elif args['dataset_name'] == 'HIV':
         dataset = MoleculeNet(root='./Data', name='HIV')
+    elif args['dataset_name'] == 'BACE':
+        dataset = MoleculeNet(root='./Data', name='BACE')
 
     else:
         raise ValueError(
