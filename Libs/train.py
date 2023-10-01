@@ -15,8 +15,8 @@ import time
 import shutil
 from tqdm import tqdm
 
-from .utils import create_early_stopper, seed_everything
-from .logger import get_logger
+from Libs.utils import create_early_stopper, seed_everything
+from Libs.logger import get_logger
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -133,13 +133,13 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():  # Mix-precision with autocast
                 if edge_feature_compact:
-                    out = model(data.x, data.edge_index,
-                                data.edge_attr, data.batch)
+                    out = model(data.x.to(torch.float), data.edge_index,
+                                data.edge_attr.to(torch.float), data.batch)
                 else:
-                    out = model(data.x, data.edge_index, data.batch)
-                loss = criterion(out, data.y)
+                    out = model(data.x.to(torch.float), data.edge_index, data.batch)
+                loss = criterion(out, data.y.flatten().to(torch.int64))
                 total_loss += loss / len(loader)
-                acc += accuracy(out.argmax(dim=1), data.y) / len(loader)
+                acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -188,13 +188,13 @@ def validate_model(model, loader, device, edge_feature_compact=True):
         data.to(device)
         with torch.cuda.amp.autocast():  # Mix-precision
             if edge_feature_compact:
-                out = model(data.x, data.edge_index,
-                            data.edge_attr, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index,
+                            data.edge_attr.to(torch.float), data.batch)
             else:
-                out = model(data.x, data.edge_index, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index, data.batch)
 
-            loss += criterion(out, data.y) / len(loader)
-            acc += accuracy(out.argmax(dim=1), data.y) / len(loader)
+            loss += criterion(out, data.y.flatten().to(torch.int64)) / len(loader)
+            acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
 
     model.train()  # setting model back to train mode
     return loss, acc
@@ -214,13 +214,13 @@ def test_model(model, loader, device, edge_feature_compact=True):
         data.to(device)
         with torch.cuda.amp.autocast():  # Mix-precision
             if edge_feature_compact:
-                out = model(data.x, data.edge_index,
-                            data.edge_attr, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index,
+                            data.edge_attr.to(torch.float), data.batch)
             else:
-                out = model(data.x, data.edge_index, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index, data.batch)
 
-            loss += criterion(out, data.y) / len(loader)
-            acc += accuracy(out.argmax(dim=1), data.y) / len(loader)
+            loss += criterion(out, data.y.flatten().to(torch.int64)) / len(loader)
+            acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
 
     print(f'\nModel accuracy on test dataset: {acc * 100:.3f}\n')
 

@@ -6,8 +6,10 @@ from torch_geometric.utils import add_self_loops, remove_self_loops, degree, sof
 
 
 # Custom imports
-from .layers import *
-from .common import *
+import sys
+sys.path.append('./')
+from Libs.layers import *
+from Libs.common import *
 
 ##################################
 ############################################################################################
