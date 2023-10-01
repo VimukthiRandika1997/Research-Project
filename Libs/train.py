@@ -111,7 +111,7 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
 
     early_stopper = create_early_stopper(patience=3, min_delta=0.05)
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
     scaler = torch.cuda.amp.GradScaler()  # gradscaler for 16-bit calculation
 
     # Losses
@@ -137,9 +137,12 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
                                 data.edge_attr.to(torch.float), data.batch)
                 else:
                     out = model(data.x.to(torch.float), data.edge_index, data.batch)
+                    
                 loss = criterion(out, data.y.flatten().to(torch.int64))
                 total_loss += loss / len(loader)
+
                 acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
+
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()

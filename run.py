@@ -33,7 +33,7 @@ model_hyperparameter_list = {
     },     
 
     'hyperparameters_for_GCN_model': {
-        'dim_h': 64
+        'dim_h': 368
     },
 
     'hyperparameters_for_GAT_model': {
@@ -42,13 +42,13 @@ model_hyperparameter_list = {
     },
 
     'hyperparameters_for_GIN_model': {
-        'dim_h': 64,
+        'dim_h': 368,
         'train_eps': True,
         'eps': 1
     },
 
     'hyperparameters_for_GINE_model': {
-        'dim_h': 64,
+        'dim_h': 368,
         'train_eps': True,
         'eps': 1
     },  
