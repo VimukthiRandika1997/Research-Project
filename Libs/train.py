@@ -91,6 +91,23 @@ def build_optimizer(args, params):
 
     return scheduler, optimizer
 
+def l2_norm(model):
+    """Calculate the l2 norm of the given model parameters,
+       Lower the result, better it is...
+    """
+
+    # Initialize the norm to zero
+    norm = 0
+
+    # Loop through all the parameters in the model
+    for param in model.parameters():
+        # Add the l2 norm of the parameter to the total norm
+        norm += torch.sum(param**2)
+
+    # get the square root to get the overall L2 norm
+    norm = torch.sqrt(norm)
+
+    return norm 
 
 def accuracy(pred_y, y):
     """Accuracy of the model: supervised learning"""
@@ -169,6 +186,8 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
         if enable_early_stopping:
             if early_stopper.early_stop(val_loss):
                 break
+    
+    logger.info(f'L2 norm of the model parameters: {l2_norm(model=model)}')
 
     return model, \
         train_acc_list, \
