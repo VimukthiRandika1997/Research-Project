@@ -32,6 +32,13 @@ model_hyperparameter_list = {
 
     },     
 
+    'hyperparameters_for_EINv3_model': {
+        'dim_h': 64,
+        'num_heads': 16,
+        'eps': 1
+
+    },     
+
     'hyperparameters_for_GCN_model': {
         'dim_h': 368
     },
