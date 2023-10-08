@@ -2,7 +2,7 @@
 import os
 import time
 
-from torch_geometric.datasets import TUDataset
+from torch_geometric.datasets import TUDataset, MoleculeNet
 
 
 import plotly.express as px
@@ -54,8 +54,16 @@ def pick_the_dataset(args):
 
     if args['dataset_name'] == 'MUTAG':
         dataset = TUDataset(root='./Data', name='MUTAG')
-    elif args.dataset_name == 'tox21':
-        pass
+    elif args['dataset_name'] == 'PROTEINS':
+        dataset = TUDataset(root='./Data', name='PROTEINS')
+    elif args['dataset_name'] == 'BBBP':
+        dataset = MoleculeNet(root='./Data', name='BBBP')
+    elif args['dataset_name'] == 'Tox21':
+        dataset = MoleculeNet(root='./Data', name='Tox21')
+    elif args['dataset_name'] == 'HIV':
+        dataset = MoleculeNet(root='./Data', name='HIV')
+    elif args['dataset_name'] == 'BACE':
+        dataset = MoleculeNet(root='./Data', name='BACE')
 
     else:
         raise ValueError(

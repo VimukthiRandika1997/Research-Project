@@ -15,8 +15,8 @@ import time
 import shutil
 from tqdm import tqdm
 
-from .utils import create_early_stopper, seed_everything
-from .logger import get_logger
+from Libs.utils import create_early_stopper, seed_everything
+from Libs.logger import get_logger
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -91,6 +91,23 @@ def build_optimizer(args, params):
 
     return scheduler, optimizer
 
+def l2_norm(model):
+    """Calculate the l2 norm of the given model parameters,
+       Lower the result, better it is...
+    """
+
+    # Initialize the norm to zero
+    norm = 0
+
+    # Loop through all the parameters in the model
+    for param in model.parameters():
+        # Add the l2 norm of the parameter to the total norm
+        norm += torch.sum(param**2)
+
+    # get the square root to get the overall L2 norm
+    norm = torch.sqrt(norm)
+
+    return norm 
 
 def accuracy(pred_y, y):
     """Accuracy of the model: supervised learning"""
@@ -111,7 +128,7 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
 
     early_stopper = create_early_stopper(patience=3, min_delta=0.05)
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
     scaler = torch.cuda.amp.GradScaler()  # gradscaler for 16-bit calculation
 
     # Losses
@@ -133,13 +150,16 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
             optimizer.zero_grad()
             with torch.cuda.amp.autocast():  # Mix-precision with autocast
                 if edge_feature_compact:
-                    out = model(data.x, data.edge_index,
-                                data.edge_attr, data.batch)
+                    out = model(data.x.to(torch.float), data.edge_index,
+                                data.edge_attr.to(torch.float), data.batch)
                 else:
-                    out = model(data.x, data.edge_index, data.batch)
-                loss = criterion(out, data.y)
+                    out = model(data.x.to(torch.float), data.edge_index, data.batch)
+                    
+                loss = criterion(out, data.y.flatten().to(torch.int64))
                 total_loss += loss / len(loader)
-                acc += accuracy(out.argmax(dim=1), data.y) / len(loader)
+
+                acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
+
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -166,6 +186,8 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
         if enable_early_stopping:
             if early_stopper.early_stop(val_loss):
                 break
+    
+    logger.info(f'L2 norm of the model parameters: {l2_norm(model=model)}')
 
     return model, \
         train_acc_list, \
@@ -188,13 +210,13 @@ def validate_model(model, loader, device, edge_feature_compact=True):
         data.to(device)
         with torch.cuda.amp.autocast():  # Mix-precision
             if edge_feature_compact:
-                out = model(data.x, data.edge_index,
-                            data.edge_attr, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index,
+                            data.edge_attr.to(torch.float), data.batch)
             else:
-                out = model(data.x, data.edge_index, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index, data.batch)
 
-            loss += criterion(out, data.y) / len(loader)
-            acc += accuracy(out.argmax(dim=1), data.y) / len(loader)
+            loss += criterion(out, data.y.flatten().to(torch.int64)) / len(loader)
+            acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
 
     model.train()  # setting model back to train mode
     return loss, acc
@@ -214,13 +236,13 @@ def test_model(model, loader, device, edge_feature_compact=True):
         data.to(device)
         with torch.cuda.amp.autocast():  # Mix-precision
             if edge_feature_compact:
-                out = model(data.x, data.edge_index,
-                            data.edge_attr, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index,
+                            data.edge_attr.to(torch.float), data.batch)
             else:
-                out = model(data.x, data.edge_index, data.batch)
+                out = model(data.x.to(torch.float), data.edge_index, data.batch)
 
-            loss += criterion(out, data.y) / len(loader)
-            acc += accuracy(out.argmax(dim=1), data.y) / len(loader)
+            loss += criterion(out, data.y.flatten().to(torch.int64)) / len(loader)
+            acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
 
     print(f'\nModel accuracy on test dataset: {acc * 100:.3f}\n')
 

@@ -11,8 +11,6 @@ current_time = datetime.datetime.now()
 
 
 ################### - Arguments for running experiments - ############################################################
-# Datasets for experiments
-datasets = ['MUTAG', '']
 
 # Model buleprints
 model_blueprints = get_all_models()
@@ -21,14 +19,28 @@ model_blueprints = get_all_models()
 model_hyperparameter_list = {
 
     'hyperparameters_for_EIN_model': {
-        'dim_h': 64,
+        'dim_h': 368,
         'num_heads': 16,
         'eps': 1
 
     },
 
+    'hyperparameters_for_EINv2_model': {
+        'dim_h': 368,
+        'num_heads': 16,
+        'eps': 1
+
+    },     
+
+    'hyperparameters_for_EINv3_model': {
+        'dim_h': 64,
+        'num_heads': 16,
+        'eps': 1
+
+    },     
+
     'hyperparameters_for_GCN_model': {
-        'dim_h': 64
+        'dim_h': 368
     },
 
     'hyperparameters_for_GAT_model': {
@@ -37,17 +49,27 @@ model_hyperparameter_list = {
     },
 
     'hyperparameters_for_GIN_model': {
-        'dim_h': 64,
+        'dim_h': 368,
         'train_eps': True,
         'eps': 1
-    }
+    },
+
+    'hyperparameters_for_GINE_model': {
+        'dim_h': 368,
+        'train_eps': True,
+        'eps': 1
+    },  
 
 }
+
+# Datasets for experiments
+datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
 
 # Arguments for dataset creation
 args = {
     'dataset_name': 'MUTAG',
-    'batch_size': 64
+    # 'dataset_name': 'BACE',
+    'batch_size': 32
 }
 
 
@@ -70,7 +92,7 @@ def run(args):
     assert len(model_hyperparameter_list) == len(model_blueprints), 'Length should be equal!!!'
 
     # Does not contain edge features, hence those are excluded
-    excluded_models = set(['GCN', 'GIN'])
+    excluded_models = set(['GCN', 'GIN',])
 
     for key, model_blueprint in zip(model_hyperparameter_list.keys(), model_blueprints):
         model_hyperparameter_list[key]['input_dim'] = metadata['num_node_features']
@@ -103,7 +125,7 @@ def run(args):
                            test_loader=test_loader,
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
-                        #    enable_early_stopping=False
+                           enable_early_stopping=False
                            )
         else:
 
@@ -115,7 +137,7 @@ def run(args):
                            epochs=300,
                            metadata_for_experiment=metadata_for_experiment,
                            edge_feature_compact=False,
-                        #    enable_early_stopping=False
+                           enable_early_stopping=False
                            )
 
 
