@@ -79,6 +79,7 @@ def pick_the_dataset(args):
     print(f'Number of edge features: {dataset.num_edge_features}')
 
     # Storing metadata
+    metadata['dataset_name'] = args['dataset_name']
     metadata['num_node_features'] = dataset.num_features
     metadata['num_edge_features'] = dataset.num_edge_features
     metadata['num_cls'] = dataset.num_classes

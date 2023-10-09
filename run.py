@@ -67,9 +67,11 @@ datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
 
 # Arguments for dataset creation
 args = {
-    'dataset_name': 'MUTAG',
-    # 'dataset_name': 'BACE',
-    'batch_size': 32
+    # 'dataset_name': 'MUTAG',
+    'dataset_name': 'BACE',
+    'batch_size': 32,
+    # 'split_type': 'random',
+    'split_type': 'scaffold',
 }
 
 
