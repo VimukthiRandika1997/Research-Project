@@ -96,7 +96,11 @@ def run(args):
 
     for key, model_blueprint in zip(model_hyperparameter_list.keys(), model_blueprints):
         model_hyperparameter_list[key]['input_dim'] = metadata['num_node_features']
-        model_hyperparameter_list[key]['final_dim'] = metadata['num_cls']
+
+        if metadata['num_cls'] == 2:
+            model_hyperparameter_list[key]['final_dim'] = 1
+        else:
+            model_hyperparameter_list[key]['final_dim'] = metadata['num_cls']
 
         # avoid models without edge features
         if not (key.split('_')[-2] in excluded_models):

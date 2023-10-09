@@ -111,10 +111,11 @@ def l2_norm(model):
 
 def accuracy(pred_y, y):
     """Accuracy of the model: supervised learning"""
-    return ((pred_y == y).sum() / len(y)).item()
+    pred_y = torch.sigmoid(pred_y)
+    return ((pred_y.round() == y).sum() / len(y)).item()
 
 
-def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_saving_artifacts, enable_early_stopping, logger, device):
+def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_saving_artifacts, enable_early_stopping, logger, device, criterion):
     """Train and validate the model with given params
 
     :param val_loader:
@@ -127,7 +128,6 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
     model.to(device)
 
     early_stopper = create_early_stopper(patience=3, min_delta=0.05)
-    criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
     scaler = torch.cuda.amp.GradScaler()  # gradscaler for 16-bit calculation
 
@@ -155,18 +155,17 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
                 else:
                     out = model(data.x.to(torch.float), data.edge_index, data.batch)
                     
-                loss = criterion(out, data.y.flatten().to(torch.int64))
+                loss = criterion(out, data.y.flatten().float())
                 total_loss += loss / len(loader)
 
-                acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
+                acc += accuracy(out, data.y.flatten().to(torch.int64)) / len(loader)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
 
         # Validation for each epoch
-        val_loss, val_acc = validate_model(
-            model, val_loader, device, edge_feature_compact)
+        val_loss, val_acc = validate_model(model, val_loader, device, criterion, edge_feature_compact)
 
         val_loss_list.append(val_loss.detach().cpu().numpy().item())
         val_acc_list.append(val_acc)
@@ -197,11 +196,10 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
 
 
 @torch.no_grad()
-def validate_model(model, loader, device, edge_feature_compact=True):
+def validate_model(model, loader, device, criterion, edge_feature_compact=True):
     """Evaluate the model on evaluation mode"""
 
     model.to(device)
-    criterion = torch.nn.CrossEntropyLoss()
     model.eval()
     loss = 0
     acc = 0
@@ -215,19 +213,18 @@ def validate_model(model, loader, device, edge_feature_compact=True):
             else:
                 out = model(data.x.to(torch.float), data.edge_index, data.batch)
 
-            loss += criterion(out, data.y.flatten().to(torch.int64)) / len(loader)
-            acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
+            loss += criterion(out, data.y.flatten().float()) / len(loader)
+            acc += accuracy(out, data.y.flatten().to(torch.int64)) / len(loader)
 
     model.train()  # setting model back to train mode
     return loss, acc
 
 
 @torch.no_grad()
-def test_model(model, loader, device, edge_feature_compact=True):
+def test_model(model, loader, device, criterion, edge_feature_compact=True):
     """Evaluate the model on evaluation mode"""
 
     model.to(device)
-    criterion = torch.nn.CrossEntropyLoss()
     model.eval()
     loss = 0
     acc = 0
@@ -241,8 +238,8 @@ def test_model(model, loader, device, edge_feature_compact=True):
             else:
                 out = model(data.x.to(torch.float), data.edge_index, data.batch)
 
-            loss += criterion(out, data.y.flatten().to(torch.int64)) / len(loader)
-            acc += accuracy(out.argmax(dim=1), data.y.flatten().to(torch.int64)) / len(loader)
+            loss += criterion(out, data.y.flatten().float()) / len(loader)
+            acc += accuracy(out, data.y.flatten().to(torch.int64)) / len(loader)
 
     print(f'\nModel accuracy on test dataset: {acc * 100:.3f}\n')
 
@@ -290,6 +287,8 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
     print('\n\n#################################### ******************************** #################################')
     print('Starting the experiment...')
 
+    criterion = torch.nn.BCEWithLogitsLoss()
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Device: {device}\n')
 
@@ -312,10 +311,11 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
                               path_to_saving_artifacts,
                               enable_early_stopping,
                               logger,
-                              device)
+                              device,
+                              criterion)
 
     # Testing accuracy for the trained model
-    test_accuracy = test_model(trained_model, test_loader, device, edge_feature_compact)
+    test_accuracy = test_model(trained_model, test_loader, device, criterion, edge_feature_compact)
 
     # Save the accuracy for the trained model on the test dataset
     logger.debug(f'Accuracy on test dataset: {test_accuracy}')

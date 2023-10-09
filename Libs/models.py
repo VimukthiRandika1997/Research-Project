@@ -38,7 +38,7 @@ class EINModel(torch.nn.Module):
         # final_dim: for classification or regression task
         self.lin2 = Linear(dim_h * 3, final_dim)
 
-    def forward(self, x, edge_index, edge_attr, batch):
+    def forward(self, x, edge_index, edge_attr, batch, type='binary'):
         # Embedding
         h1 = self.conv1(x, edge_index, edge_attr)
         h1 = h1.relu()
@@ -59,8 +59,9 @@ class EINModel(torch.nn.Module):
         h = h.relu()
         h = F.dropout(h, p=0.5, training=self.training)
         h = self.lin2(h)
-
-        return F.log_softmax(h, dim=1)
+        
+        return h.flatten()
+        # return F.log_softmax(h, dim=1)
 ###############
 
 
@@ -124,7 +125,8 @@ class EINModel_v2(torch.nn.Module):
         h = F.dropout(h, p=0.5, training=self.training)
         h = self.lin2(h)
 
-        return F.log_softmax(h, dim=1)
+        # return F.log_softmax(h, dim=1)
+        return h.flatten()
 ###############
 
 
@@ -185,7 +187,8 @@ class EINModel_v3(torch.nn.Module):
         h = F.dropout(h, p=0.5, training=self.training)
         h = self.lin2(h)
 
-        return F.log_softmax(h, dim=1)
+        # return F.log_softmax(h, dim=1)
+        return h.flatten()
 
 ###############
 
@@ -235,7 +238,8 @@ class GATModel(torch.nn.Module):
         h = F.dropout(h, p=0.5, training=self.training)
         h = self.lin2(h)
 
-        return F.log_softmax(h, dim=1)
+        # return F.log_softmax(h, dim=1)
+        return h.flatten()
 
 ###############
 
@@ -279,7 +283,8 @@ class GCNModel(torch.nn.Module):
         h = F.dropout(h, p=0.5, training=self.training)
         h = self.lin2(h)
 
-        return F.log_softmax(h, dim=1)
+        # return F.log_softmax(h, dim=1)
+        return h.flatten()
 
 ###############
 
@@ -341,7 +346,8 @@ class GINModel(torch.nn.Module):
         h = F.dropout(h, p=0.5, training=self.training)
         h = self.lin2(h)
 
-        return F.log_softmax(h, dim=1)
+        # return F.log_softmax(h, dim=1)
+        return h.flatten()
 
 ###############
 
@@ -406,7 +412,8 @@ class GINEModel(torch.nn.Module):
         h = F.dropout(h, p=0.5, training=self.training)
         h = self.lin2(h)
 
-        return F.log_softmax(h, dim=1)
+        # return F.log_softmax(h, dim=1)
+        return h.flatten()
 
 ###############
 
