@@ -14,12 +14,6 @@ from Libs.splitting import scaffold_split
 
 
 ################### - Helper Functions - #############################################################
-##################################
-
-############################################################################################
-
-
-################### - Helper Functions - #############################################################
 def create_dataset_splits(dataset, metadata, split_type='random'):
     # Shuffle the dataset
     # dataset = dataset.shuffle()
@@ -34,6 +28,10 @@ def create_dataset_splits(dataset, metadata, split_type='random'):
         dataset_name = metadata['dataset_name']
         if dataset_name == 'BACE':
             smiles_list = pd.read_csv(f'./Data/{dataset_name.lower()}/raw/{dataset_name.lower()}.csv')['mol'].tolist()
+        elif dataset_name == 'BBBP': #FIXME not working! 
+            smiles_list = pd.read_csv(f'./Data/{dataset_name.lower()}/raw/{dataset_name}.csv')['smiles'].tolist()
+        elif dataset_name == 'HIV': 
+            smiles_list = pd.read_csv(f'./Data/{dataset_name.lower()}/raw/{dataset_name}.csv')['smiles'].tolist()        
         else:
             smiles_list = pd.read_csv(f'./Data/{dataset_name.lower()}/raw/{dataset_name.lower()}.csv')['smiles'].tolist()
 

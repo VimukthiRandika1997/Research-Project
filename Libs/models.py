@@ -25,11 +25,11 @@ class EINModel(torch.nn.Module):
 
         # Layers
         self.conv1 = EINv1(input_dim, dim_h, edge_dim=edge_dim,
-                           heads=num_heads, train_eps=True, **kwargs)
+                           heads=num_heads, **kwargs)
         self.conv2 = EINv1(dim_h, dim_h, edge_dim=edge_dim,
-                           heads=num_heads, train_eps=True, **kwargs)
+                           heads=num_heads, **kwargs)
         self.conv3 = EINv1(dim_h, dim_h, edge_dim=edge_dim,
-                           heads=num_heads, train_eps=True, **kwargs)
+                           heads=num_heads, **kwargs)
 
         # Linear layer
         self.lin1 = Linear(dim_h * 3, dim_h * 3)
@@ -77,7 +77,6 @@ class EINModel_v2(torch.nn.Module):
                            dim_h, 
                            edge_dim=edge_dim,
                            heads=num_heads, 
-                           train_eps=True, 
                            **kwargs)
         
         self.conv2 = EINv2(MLPBlockNorm(dim_h, dim_h),
@@ -85,7 +84,6 @@ class EINModel_v2(torch.nn.Module):
                             dim_h, 
                             edge_dim=edge_dim,
                            heads=num_heads, 
-                           train_eps=True, 
                            **kwargs)
         
         self.conv3 = EINv2(MLPBlockNorm(dim_h, dim_h), 
@@ -93,7 +91,6 @@ class EINModel_v2(torch.nn.Module):
                            dim_h, 
                            edge_dim=edge_dim,
                            heads=num_heads, 
-                           train_eps=True, 
                            **kwargs)
 
         # Linear layer

@@ -5,6 +5,12 @@ import plotly.express as px
 import networkx as nx
 import pandas as pd
 
+
+import sklearn.metrics
+
+from torchmetrics.classification import BinaryAUROC
+from torchmetrics.classification import BinaryAveragePrecision
+
 import torch
 import torch.optim as optim
 from torch_geometric.loader import DataLoader
@@ -114,6 +120,24 @@ def accuracy(pred_y, y):
     pred_y = torch.sigmoid(pred_y)
     return ((pred_y.round() == y).sum() / len(y)).item()
 
+def compute_roc_auc_score(pred_logits, y):
+    
+    # Taking the probs
+    pred_y = torch.sigmoid(pred_logits)
+
+    metric = BinaryAUROC(thresholds=None)
+
+    return metric(pred_y, y)
+
+
+def compute_avg_precision_score(pred_logits, y):
+
+    pred_y = torch.sigmoid(pred_logits)
+
+    metric = BinaryAveragePrecision(thresholds=None)
+
+    return metric(pred_y, y)
+
 
 def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_saving_artifacts, enable_early_stopping, logger, device, criterion):
     """Train and validate the model with given params
@@ -129,6 +153,8 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
 
     early_stopper = create_early_stopper(patience=3, min_delta=0.05)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+    # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0.01)
     scaler = torch.cuda.amp.GradScaler()  # gradscaler for 16-bit calculation
 
     # Losses
@@ -143,6 +169,10 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
     for epoch in range(epochs + 1):
         total_loss = 0
         acc = 0
+
+        # Decay Learning Rate
+        scheduler.step()
+        # print('Epoch:', epoch,'LR:', scheduler.get_lr())
 
         # Train on batches
         for data in loader:
@@ -228,6 +258,8 @@ def test_model(model, loader, device, criterion, edge_feature_compact=True):
     model.eval()
     loss = 0
     acc = 0
+    roc_auc_score = 0
+    avg_precision_score = 0
 
     for data in loader:
         data.to(device)
@@ -240,10 +272,14 @@ def test_model(model, loader, device, criterion, edge_feature_compact=True):
 
             loss += criterion(out, data.y.flatten().float()) / len(loader)
             acc += accuracy(out, data.y.flatten().to(torch.int64)) / len(loader)
+            roc_auc_score += compute_roc_auc_score(out, data.y.flatten().to(torch.int64)) / len(loader)
+            avg_precision_score += compute_avg_precision_score(out, data.y.flatten().to(torch.int64)) / len(loader)
 
     print(f'\nModel accuracy on test dataset: {acc * 100:.3f}\n')
+    print(f'ROC-AUC Score for Test set: {roc_auc_score:.3f}\n')
+    print(f'Average Precision Score for Test set: {avg_precision_score:.3f}\n')
 
-    return acc
+    return acc, roc_auc_score, avg_precision_score
 
 
 def visualize_results(train_list, val_list, meta_data, path_to_saving_artifacts):
@@ -315,10 +351,12 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
                               criterion)
 
     # Testing accuracy for the trained model
-    test_accuracy = test_model(trained_model, test_loader, device, criterion, edge_feature_compact)
+    test_accuracy, roc_auc_score, avg_precision_score = test_model(trained_model, test_loader, device, criterion, edge_feature_compact)
 
-    # Save the accuracy for the trained model on the test dataset
+    # Save the accuracy for the trained model on the test datedge_feature_compactaset
     logger.debug(f'Accuracy on test dataset: {test_accuracy}')
+    logger.debug(f'ROC-AUC Score on test dataset: {roc_auc_score:.3f}')
+    logger.debug(f'Average-Precision Score on test dataset: {avg_precision_score:.3f}')
 
     # Visualize the loss
     visualize_results(train_loss_list, val_loss_list,

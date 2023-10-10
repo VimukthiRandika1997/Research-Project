@@ -11,6 +11,28 @@ current_time = datetime.datetime.now()
 
 
 ################### - Arguments for running experiments - ############################################################
+EPOCHS=500
+BATCH_SIZE=32
+DIM_H=64
+NUM_HEADS=16
+TRAIN_EPS=True
+EPS=1
+
+# Datasets for experiments
+datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
+
+# Arguments for dataset creation
+args = {
+    # 'dataset_name': 'MUTAG',
+    # 'dataset_name': 'BACE',
+    'dataset_name': 'BBBP',
+    # 'dataset_name': 'HIV',
+    'batch_size': BATCH_SIZE,
+    'split_type': 'random',
+    # 'split_type': 'scaffold',
+    'epochs': EPOCHS
+}
+
 
 # Model buleprints
 model_blueprints = get_all_models()
@@ -19,59 +41,50 @@ model_blueprints = get_all_models()
 model_hyperparameter_list = {
 
     'hyperparameters_for_EIN_model': {
-        'dim_h': 368,
-        'num_heads': 16,
-        'eps': 1
+        'dim_h': DIM_H,
+        'num_heads': NUM_HEADS,
+        'train_eps': TRAIN_EPS,
+        'eps': EPS
 
     },
 
     'hyperparameters_for_EINv2_model': {
-        'dim_h': 368,
-        'num_heads': 16,
-        'eps': 1
+        'dim_h': DIM_H,
+        'num_heads': NUM_HEADS,
+        'train_eps': TRAIN_EPS,
+        'eps': EPS
 
     },     
 
     'hyperparameters_for_EINv3_model': {
-        'dim_h': 64,
-        'num_heads': 16,
-        'eps': 1
+        'dim_h': DIM_H,
+        'num_heads': NUM_HEADS,
+        'train_eps': TRAIN_EPS,
+        'eps': EPS
 
     },     
 
     'hyperparameters_for_GCN_model': {
-        'dim_h': 368
+        'dim_h': DIM_H
     },
 
     'hyperparameters_for_GAT_model': {
-        'dim_h': 64,
-        'num_heads': 16,
+        'dim_h': DIM_H,
+        'num_heads': NUM_HEADS,
     },
 
     'hyperparameters_for_GIN_model': {
-        'dim_h': 368,
-        'train_eps': True,
-        'eps': 1
+        'dim_h': DIM_H,
+        'train_eps': TRAIN_EPS,
+        'eps': EPS
     },
 
     'hyperparameters_for_GINE_model': {
-        'dim_h': 368,
-        'train_eps': True,
-        'eps': 1
+        'dim_h': DIM_H,
+        'train_eps': TRAIN_EPS,
+        'eps': EPS
     },  
 
-}
-
-# Datasets for experiments
-datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
-
-# Arguments for dataset creation
-args = {
-    # 'dataset_name': 'MUTAG',
-    'dataset_name': 'BACE',
-    'batch_size': 32,
-    # 'split_type': 'random',
-    'split_type': 'scaffold',
 }
 
 
@@ -129,7 +142,7 @@ def run(args):
                            train_loader=train_loader,
                            val_loader=val_loader,
                            test_loader=test_loader,
-                           epochs=300,
+                           epochs=args['epochs'],
                            metadata_for_experiment=metadata_for_experiment,
                            enable_early_stopping=False
                            )
@@ -140,7 +153,7 @@ def run(args):
                            train_loader=train_loader,
                            val_loader=val_loader,
                            test_loader=test_loader,
-                           epochs=300,
+                           epochs=args['epochs'],
                            metadata_for_experiment=metadata_for_experiment,
                            edge_feature_compact=False,
                            enable_early_stopping=False
