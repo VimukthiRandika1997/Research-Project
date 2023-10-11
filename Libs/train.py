@@ -375,7 +375,7 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
     logger.debug(f'Accuracy on test dataset: {test_accuracy}')
     logger.debug(f'ROC-AUC Score on test dataset: {roc_auc_score:.3f}')
     logger.debug(f'Average-Precision Score on test dataset: {avg_precision_score:.3f}')
-    logger.debug(f'AUC-ROC Score on test dataset: {auc_pr_curve:.3f}')
+    logger.debug(f'AUC-PR Score on test dataset: {auc_pr_curve:.3f}')
 
     # Visualize the loss
     visualize_results(train_loss_list, val_loss_list,
