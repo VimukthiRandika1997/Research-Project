@@ -6,10 +6,11 @@ import networkx as nx
 import pandas as pd
 
 
-import sklearn.metrics
+from sklearn.metrics import auc
 
 from torchmetrics.classification import BinaryAUROC
 from torchmetrics.classification import BinaryAveragePrecision
+from torchmetrics.classification import BinaryPrecisionRecallCurve
 
 import torch
 import torch.optim as optim
@@ -97,6 +98,7 @@ def build_optimizer(args, params):
 
     return scheduler, optimizer
 
+
 def l2_norm(model):
     """Calculate the l2 norm of the given model parameters,
        Lower the result, better it is...
@@ -115,10 +117,12 @@ def l2_norm(model):
 
     return norm 
 
+
 def accuracy(pred_y, y):
     """Accuracy of the model: supervised learning"""
     pred_y = torch.sigmoid(pred_y)
     return ((pred_y.round() == y).sum() / len(y)).item()
+
 
 def compute_roc_auc_score(pred_logits, y):
     
@@ -137,6 +141,15 @@ def compute_avg_precision_score(pred_logits, y):
     metric = BinaryAveragePrecision(thresholds=None)
 
     return metric(pred_y, y)
+
+
+def compute_PR_curve(pred_logits, y):
+
+    pred_y = torch.sigmoid(pred_logits)
+
+    metric = BinaryPrecisionRecallCurve(thresholds=None)
+
+    return metric(pred_y, y) 
 
 
 def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_saving_artifacts, enable_early_stopping, logger, device, criterion):
@@ -260,6 +273,7 @@ def test_model(model, loader, device, criterion, edge_feature_compact=True):
     acc = 0
     roc_auc_score = 0
     avg_precision_score = 0
+    auc_pr_curve = 0 # average over the entire dataset
 
     for data in loader:
         data.to(device)
@@ -275,11 +289,15 @@ def test_model(model, loader, device, criterion, edge_feature_compact=True):
             roc_auc_score += compute_roc_auc_score(out, data.y.flatten().to(torch.int64)) / len(loader)
             avg_precision_score += compute_avg_precision_score(out, data.y.flatten().to(torch.int64)) / len(loader)
 
+            precision, recall, _ = compute_PR_curve(out, data.y.flatten().to(torch.int64))
+            auc_pr_curve += auc(recall.cpu().numpy(), precision.cpu().numpy()) / len(loader)
+
     print(f'\nModel accuracy on test dataset: {acc * 100:.3f}\n')
     print(f'ROC-AUC Score for Test set: {roc_auc_score:.3f}\n')
     print(f'Average Precision Score for Test set: {avg_precision_score:.3f}\n')
+    print(f'AUC-PR Score for Test set: {auc_pr_curve:.3f}\n')
 
-    return acc, roc_auc_score, avg_precision_score
+    return acc, roc_auc_score, avg_precision_score, auc_pr_curve
 
 
 def visualize_results(train_list, val_list, meta_data, path_to_saving_artifacts):
@@ -351,12 +369,13 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
                               criterion)
 
     # Testing accuracy for the trained model
-    test_accuracy, roc_auc_score, avg_precision_score = test_model(trained_model, test_loader, device, criterion, edge_feature_compact)
+    test_accuracy, roc_auc_score, avg_precision_score, auc_pr_curve = test_model(trained_model, test_loader, device, criterion, edge_feature_compact)
 
     # Save the accuracy for the trained model on the test datedge_feature_compactaset
     logger.debug(f'Accuracy on test dataset: {test_accuracy}')
     logger.debug(f'ROC-AUC Score on test dataset: {roc_auc_score:.3f}')
     logger.debug(f'Average-Precision Score on test dataset: {avg_precision_score:.3f}')
+    logger.debug(f'AUC-ROC Score on test dataset: {auc_pr_curve:.3f}')
 
     # Visualize the loss
     visualize_results(train_loss_list, val_loss_list,
