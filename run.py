@@ -12,7 +12,7 @@ current_time = datetime.datetime.now()
 
 ################### - Arguments for running experiments - ############################################################
 EPOCHS=500
-BATCH_SIZE=32
+BATCH_SIZE=64
 DIM_H=64
 NUM_HEADS=16
 TRAIN_EPS=True
@@ -24,8 +24,8 @@ datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
 # Arguments for dataset creation
 args = {
     # 'dataset_name': 'MUTAG',
-    # 'dataset_name': 'BACE',
-    'dataset_name': 'BBBP',
+    'dataset_name': 'BACE',
+    # 'dataset_name': 'BBBP',
     # 'dataset_name': 'HIV',
     'batch_size': BATCH_SIZE,
     'split_type': 'random',
@@ -63,6 +63,23 @@ model_hyperparameter_list = {
         'eps': EPS
 
     },     
+
+     'hyperparameters_for_EINv4_model': {
+        'dim_h': DIM_H,
+        'num_heads': NUM_HEADS,
+        'train_eps': TRAIN_EPS,
+        'eps': EPS
+
+    }, 
+
+    'hyperparameters_for_EINv5_model': {
+        'dim_h': DIM_H,
+        'num_heads': NUM_HEADS,
+        'train_eps': TRAIN_EPS,
+        'eps': EPS,
+        'share_weights': True
+
+    },
 
     'hyperparameters_for_GCN_model': {
         'dim_h': DIM_H
