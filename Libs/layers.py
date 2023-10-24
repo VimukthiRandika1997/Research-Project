@@ -507,9 +507,6 @@ class EINv4(MessagePassing):
         self.in_degree_encoder = nn.Embedding(out_channels, out_channels, padding_idx=0)
         self.out_degree_encoder = nn.Embedding(out_channels, out_channels, padding_idx=0)
 
-        # Graph Token
-        self.graph_token = nn.Embedding(1, out_channels)
-
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
@@ -523,7 +520,6 @@ class EINv4(MessagePassing):
         self.lin_l.reset_parameters()
         self.lin_r.reset_parameters()
         self.inf.reset_parameters()
-        self.graph_token.reset_parameters()
         self.in_degree_encoder.reset_parameters()
         self.out_degree_encoder.reset_parameters()
         self.eps.data.fill_(self.initial_eps)
@@ -565,11 +561,6 @@ class EINv4(MessagePassing):
             + self.in_degree_encoder(in_degree) 
             + self.out_degree_encoder(out_degree)
         )
-
-        # Add graph-token information
-        # graph_token_feature = self.graph_token.weight.repeat(out.shape[0], 1)
-        graph_token_feature = self.graph_token.weight
-        out = out + graph_token_feature
 
         # Returning attention weights with computed hidden features
         if isinstance(return_attention_weights, bool):
@@ -616,7 +607,6 @@ class EINv5(MessagePassing):
     2-layer MLP Block is used to learn more features following the model arch: GIN
 
     Note: 
-        - Graph_token is added here which summerizes the whole the graph / batch
         - Centrality encoding is added: in-degree, out-degree
     """
 
@@ -670,9 +660,6 @@ class EINv5(MessagePassing):
         self.in_degree_encoder = torch.nn.Embedding(out_channels, out_channels, padding_idx=0)
         self.out_degree_encoder = torch.nn.Embedding(out_channels, out_channels, padding_idx=0)
 
-        # Graph Token
-        self.graph_token = torch.nn.Embedding(1, out_channels)
-
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
         else:
@@ -688,7 +675,6 @@ class EINv5(MessagePassing):
         self.lin_l.reset_parameters()
         self.lin_r.reset_parameters()
         self.inf.reset_parameters()
-        self.graph_token.reset_parameters()
         self.in_degree_encoder.reset_parameters()
         self.out_degree_encoder.reset_parameters()
         self.eps.data.fill_(self.initial_eps)
@@ -736,11 +722,6 @@ class EINv5(MessagePassing):
             + self.in_degree_encoder(in_degree) 
             + self.out_degree_encoder(out_degree)
         )
-
-        # Add graph-token information
-        # graph_token_feature = self.graph_token.weight.repeat(out.shape[0], 1)
-        graph_token_feature = self.graph_token.weight
-        out = out + graph_token_feature
 
         # Returning attention weights with computed hidden features
         if isinstance(return_attention_weights, bool):

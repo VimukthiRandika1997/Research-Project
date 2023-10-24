@@ -20,6 +20,8 @@ import torch_geometric.nn as pyg_nn
 import os
 import time
 import shutil
+import yaml
+import json
 from tqdm import tqdm
 
 from Libs.utils import create_early_stopper, seed_everything
@@ -164,7 +166,7 @@ def train(model, loader, val_loader, epochs, edge_feature_compact, path_to_savin
     """
     model.to(device)
 
-    early_stopper = create_early_stopper(patience=3, min_delta=0.05)
+    early_stopper = create_early_stopper(patience=10, min_delta=0.05)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
     # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.1)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0.01)
@@ -329,13 +331,56 @@ def visualize_results(train_list, val_list, meta_data, path_to_saving_artifacts)
     fig.write_image(os.path.join(path_to_saving_artifacts,
                     f"images/{meta_data['image_data']}.png"))
 
+
+def read_yaml_file(path_to_file):
+    with open(path_to_file, 'r') as f:
+        data = yaml.safe_load(f)
+
+    return data
+
+
+def write_yaml_file(path_to_save_file, data):
+    with open(path_to_save_file, 'w') as f:
+        yaml.dump(data, f)
+
+
+def update_content(data_dict, eval_name, model_name):
+
+    file_path = os.path.join(base_path_for_saving_artifacts, eval_name, 'eval.yaml')
+
+    if os.path.exists(file_path):
+        file_content = read_yaml_file(file_path)
+    else:
+        file_content = {}
+
+    # Check the model exist or not
+    if model_name in file_content.keys():
+        file_content[model_name]['test_accuracy'].append(data_dict['test_accuracy'])
+        file_content[model_name]['roc_auc_score'].append(data_dict['roc_auc_score'])
+        file_content[model_name]['avg_precision_score'].append(data_dict['avg_precision_score'])
+        file_content[model_name]['auc_pr_curve'].append(data_dict['auc_pr_curve'])
+    else:
+        file_content[model_name] = {}
+        file_content[model_name]['test_accuracy'] = []
+        file_content[model_name]['test_accuracy'].append(data_dict['test_accuracy'])
+        file_content[model_name]['roc_auc_score'] = [] 
+        file_content[model_name]['roc_auc_score'].append(data_dict['roc_auc_score'])
+        file_content[model_name]['avg_precision_score'] = []
+        file_content[model_name]['avg_precision_score'].append(data_dict['avg_precision_score'])
+        file_content[model_name]['auc_pr_curve'] = []
+        file_content[model_name]['auc_pr_curve'].append(data_dict['auc_pr_curve'])
+
+    # write the content back to a file
+    write_yaml_file(file_path, file_content)
+
+
 ##################################
 ############################################################################################
 
 
 ################### - Main Execution - #############################################################
 
-def run_experiment(experiment_name, model, train_loader, val_loader, test_loader, epochs, metadata_for_experiment, edge_feature_compact=True, enable_early_stopping=True):
+def run_experiment(experiment_name, model, train_loader, val_loader, test_loader, epochs, metadata_for_experiment, edge_feature_compact=True, enable_early_stopping=True, eval_mode=False):
     """Run an experiment on given settings"""
 
     print('\n\n#################################### ******************************** #################################')
@@ -370,6 +415,18 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
 
     # Testing accuracy for the trained model
     test_accuracy, roc_auc_score, avg_precision_score, auc_pr_curve = test_model(trained_model, test_loader, device, criterion, edge_feature_compact)
+
+    if eval_mode:
+        data = {}
+        data['test_accuracy'] = test_accuracy
+        data['roc_auc_score'] = roc_auc_score.detach().cpu().numpy().item()
+        data['avg_precision_score'] = avg_precision_score.detach().cpu().numpy().item()
+        data['auc_pr_curve'] = auc_pr_curve.item()
+
+        model_name = experiment_name.split('/')[-1].split('_')[0]
+        eval_name = experiment_name.split('/')[0]
+        update_content(data_dict=data, eval_name=eval_name, model_name=model_name)
+    
 
     # Save the accuracy for the trained model on the test datedge_feature_compactaset
     logger.debug(f'Accuracy on test dataset: {test_accuracy}')

@@ -5,7 +5,6 @@ from Libs.train import run_experiment
 
 import datetime
 
-current_time = datetime.datetime.now()
 ##################################
 ############################################################################################
 
@@ -23,14 +22,15 @@ datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
 
 # Arguments for dataset creation
 args = {
-    # 'dataset_name': 'MUTAG',
-    'dataset_name': 'BACE',
+    'dataset_name': 'MUTAG',
+    # 'dataset_name': 'BACE',
     # 'dataset_name': 'BBBP',
     # 'dataset_name': 'HIV',
     'batch_size': BATCH_SIZE,
     'split_type': 'random',
     # 'split_type': 'scaffold',
-    'epochs': EPOCHS
+    'epochs': EPOCHS,
+    'eval_mode': False
 }
 
 
@@ -143,6 +143,8 @@ def run(args):
         model = model_blueprint(**model_hyperparameter_list[key])
         model_list.append(model)
 
+    current_time = datetime.datetime.now()
+
     # Running the experiments
     for i, (model, key) in enumerate(zip(model_list, model_hyperparameter_list.keys())):
 
@@ -154,27 +156,54 @@ def run(args):
         model_name = key.split('_')[-2]
         if not (model_name in excluded_models):
 
-            run_experiment(experiment_name=f"exp_{str(current_time)}/{model_name}_{args['dataset_name']}_exp",
-                           model=model,
-                           train_loader=train_loader,
-                           val_loader=val_loader,
-                           test_loader=test_loader,
-                           epochs=args['epochs'],
-                           metadata_for_experiment=metadata_for_experiment,
-                           enable_early_stopping=False
-                           )
+            if args['eval_mode']:
+                run_experiment(experiment_name=f"{args['eval_name']}/{args['dataset_name']}/exp_{str(current_time)}/{model_name}_exp",
+                            model=model,
+                            train_loader=train_loader,
+                            val_loader=val_loader,
+                            test_loader=test_loader,
+                            epochs=args['epochs'],
+                            metadata_for_experiment=metadata_for_experiment,
+                            enable_early_stopping=False,
+                            eval_mode=args['eval_mode']
+                            )
+            else:
+                run_experiment(experiment_name=f"{args['dataset_name']}/exp_{str(current_time)}/{model_name}_exp",
+                            model=model,
+                            train_loader=train_loader,
+                            val_loader=val_loader,
+                            test_loader=test_loader,
+                            epochs=args['epochs'],
+                            metadata_for_experiment=metadata_for_experiment,
+                            enable_early_stopping=False,
+                            eval_mode=args['eval_mode']
+                )
         else:
 
-            run_experiment(experiment_name=f"exp_{str(current_time)}/{model_name}_{args['dataset_name']}_exp",
-                           model=model,
-                           train_loader=train_loader,
-                           val_loader=val_loader,
-                           test_loader=test_loader,
-                           epochs=args['epochs'],
-                           metadata_for_experiment=metadata_for_experiment,
-                           edge_feature_compact=False,
-                           enable_early_stopping=False
-                           )
+            if args['eval_mode']:
+                run_experiment(experiment_name=f"{args['eval_name']}/{args['dataset_name']}/exp_{str(current_time)}/{model_name}_exp",
+                            model=model,
+                            train_loader=train_loader,
+                            val_loader=val_loader,
+                            test_loader=test_loader,
+                            epochs=args['epochs'],
+                            metadata_for_experiment=metadata_for_experiment,
+                            edge_feature_compact=False,
+                            enable_early_stopping=False,
+                            eval_mode=args['eval_mode']
+                            )
+            else:
+                run_experiment(experiment_name=f"{args['dataset_name']}/exp_{str(current_time)}/{model_name}_exp",
+                            model=model,
+                            train_loader=train_loader,
+                            val_loader=val_loader,
+                            test_loader=test_loader,
+                            epochs=args['epochs'],
+                            metadata_for_experiment=metadata_for_experiment,
+                            edge_feature_compact=False,
+                            enable_early_stopping=False,
+                            eval_mode=args['eval_mode']
+                )
 
 
 if __name__ == '__main__':
