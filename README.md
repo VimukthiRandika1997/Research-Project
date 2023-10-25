@@ -7,18 +7,23 @@ Also training pipeline, inference pipeline, etc are added to reproduce the resul
 ## Installation
 
 You need to install **pytorch** and **pytorch geometric** and other supportive libraries first!. Use
-`requirements.txt` file to install the dependencies!
+`requirements.txt` or `environment.yaml` file to install the dependencies!
 
 ```bash
+# For pip installation
 pip install -r requirements.txt
+# For conda installation
+conda env create --file=environment.yaml
 ```
 
 ## Usage
 Adjust hyper-parameters as you see fit in the `run.py`
 
 ```python
-# Run the script
+# Run the script for testing 
 python3 run.py
+# Run the script for evaluation: x times
+python3 evaluate.py
 ```
 
 ## Contributing
