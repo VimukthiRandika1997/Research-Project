@@ -3,6 +3,7 @@ import torch
 from torch_geometric.loader import DataLoader
 
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 
 from Libs.datasets import pick_the_dataset
@@ -43,6 +44,31 @@ def create_dataset_splits(dataset, metadata, split_type='random'):
 
     return train_dataset, val_dataset, test_dataset
 
+def get_class_weights(dataset):
+    """Get the class weight for the class imbalance
+    
+    Args:
+        dataset: original dataset: torch_geometric.dataset
+
+    Return:
+        weight: final weight to be applied for the loss function (float)
+    """    
+
+    for i in range(len(dataset)):
+        y_i = dataset[i].y.cpu().detach().numpy()
+        y = y_i if i ==0 else np.vstack([y,dataset[i].y.cpu().detach().numpy()]) 
+
+    # Creating the dataframe
+    y_flat = y.flatten()
+    df_y = pd.DataFrame({'Target': y_flat})
+
+    # Get the value count / class occurance
+    count_arr = list(df_y.value_counts())  # Like [1567, 483]
+    # # Take the weight by dividing the highest occuring class by minimum class
+    weight = max(count_arr) / min(count_arr)
+
+    return weight
+
 ##################################
 ############################################################################################
 
@@ -58,6 +84,10 @@ def create_dataloaders(args):
 
     dataset, metadata = pick_the_dataset(args)
     train_dataset, val_dataset, test_dataset = create_dataset_splits(dataset, metadata, args['split_type'])
+
+    # Class weight
+    class_weight = get_class_weights(dataset=dataset)
+    metadata['class_weight'] = class_weight
 
     seed_worker, generator = seed_dataloader()
 

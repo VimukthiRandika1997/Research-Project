@@ -386,10 +386,16 @@ def run_experiment(experiment_name, model, train_loader, val_loader, test_loader
     print('\n\n#################################### ******************************** #################################')
     print('Starting the experiment...')
 
-    criterion = torch.nn.BCEWithLogitsLoss()
-
+    # Get the device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Device: {device}\n')
+
+    # Class weight
+    print('Class_weight: ', metadata_for_experiment['dataset']['class_weight'], '\n')
+    class_weight = torch.FloatTensor([metadata_for_experiment['dataset']['class_weight']])
+
+    # Criterion for loss calculation
+    criterion = torch.nn.BCEWithLogitsLoss(pos_weight=class_weight.to(device))
 
     path_to_saving_artifacts = _create_directories(experiment_name)
     seed_everything()  # apply seeding
