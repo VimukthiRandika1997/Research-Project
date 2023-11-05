@@ -69,3 +69,8 @@ def seed_dataloader(seed=42):
 
     return seed_worker, g
 
+
+def count_parameters(model):
+    """Count the number of parameters in the given model"""
+
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)

@@ -670,7 +670,7 @@ def get_all_models():
         EINModel,
         EINModel_v2,
         EINModel_v3,
-        EINModel_v4,
+        # EINModel_v4,
         EINModel_v5,
         GCNModel,
         GATModel,

@@ -22,9 +22,9 @@ datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
 
 # Arguments for dataset creation
 args = {
-    'dataset_name': 'MUTAG',
+    # 'dataset_name': 'MUTAG',
     # 'dataset_name': 'BACE',
-    # 'dataset_name': 'BBBP',
+    'dataset_name': 'BBBP',
     # 'dataset_name': 'HIV',
     'batch_size': BATCH_SIZE,
     'split_type': 'random',
@@ -64,13 +64,13 @@ model_hyperparameter_list = {
 
     },     
 
-     'hyperparameters_for_EINv4_model': {
-        'dim_h': DIM_H,
-        'num_heads': NUM_HEADS,
-        'train_eps': TRAIN_EPS,
-        'eps': EPS
+    #  'hyperparameters_for_EINv4_model': {
+    #     'dim_h': DIM_H,
+    #     'num_heads': NUM_HEADS,
+    #     'train_eps': TRAIN_EPS,
+    #     'eps': EPS
 
-    }, 
+    # }, 
 
     'hyperparameters_for_EINv5_model': {
         'dim_h': DIM_H,

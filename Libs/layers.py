@@ -454,7 +454,6 @@ class EINv4(MessagePassing):
     A Edge featured attention based Graph Neural Network Layer for Graph Classification / Regression Tasks: V4
 
     Note: 
-        - Graph_token is added here which summerizes the whole the graph / batch
         - Centrality encoding is added: in-degree, out-degree
     """
 

@@ -22,9 +22,9 @@ datasets = ['MUTAG', 'BBBP', 'Tox21', 'HIV', 'PROTEINS', 'BACE']
 
 # Arguments for dataset creation
 args = {
-    'dataset_name': 'MUTAG',
+    # 'dataset_name': 'MUTAG',
     # 'dataset_name': 'BACE',
-    # 'dataset_name': 'BBBP',
+    'dataset_name': 'BBBP',
     # 'dataset_name': 'HIV',
     'batch_size': BATCH_SIZE,
     'split_type': 'random',
